@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import string
+import urllib
 
 import seesaw
 from seesaw.externalprocess import WgetDownload
@@ -197,7 +198,11 @@ class WgetArgs(object):
         assert item_type in ('user')
         
         if item_type == 'user':
-            wget_args.append('https://helpouts.google.com/{0}'.format(item_value))
+            urlhtml = urllib.urlopen('https://helpouts.google.com/{0}'.format(item_value))
+            if urlhtml.getcode() == 200 and not "user does not exist" in urlhtml.read():
+                wget_args.append('https://helpouts.google.com/{0}'.format(item_value))
+            else:
+                raise Exception('This url is not available in your country: {0}'.format('https://helpouts.google.com/{0}'.format(item_value)))
         else:
             raise Exception('Unknown item')
         
