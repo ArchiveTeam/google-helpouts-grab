@@ -29,7 +29,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   end
   
   if item_type == "user" and (downloaded[url] ~= true or addedtolist[url] ~= true) then
-    if string.match(url, "/"..item_value) or html == 0 then
+    if string.match(url, "/"..item_value) and string.match(url, "helpouts%.google%.com") then
       addedtolist[url] = true
       return true
     else
@@ -43,11 +43,17 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   local urls = {}
   local html = nil
   
-  local function check(url)
+  local function check(url, origurl)
     if (downloaded[url] ~= true and addedtolist[url] ~= true) then
       if string.match(url, "&amp;") then
-        table.insert(urls, { url=url })
-        check(string.gsub(url, "&amp;", "&")
+        table.insert(urls, { url=string.gsub(url, "&amp;", "&") })
+        addedtolist[url] = true
+        addedtolist[string.gsub(url, "&amp;", "&")] = true
+      elseif string.match(origurl, "/api/offer/") then
+        if not (string.match(url, "photo%.jpg") or string.match(url, "/votereview/")) then
+          table.insert(urls, { url=url })
+          addedtolist[url] = true
+        end
       else
         table.insert(urls, { url=url })
         addedtolist[url] = true
@@ -58,15 +64,18 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   if item_type == "user" then
     if string.match(url, "/"..item_value) then
       html = read_file(file)
-      for newurl in string.gmatch(html, "(/[^"]+)") do
+      for newurl in string.gmatch(html, '"(/[^"]+)"') do
         if string.match(newurl, "/"..item_value) then
-          check("https://helpouts.google.com"..newurl)
+          check("https://helpouts.google.com"..newurl, url)
         end
       end
-      for newurl in string.gmatch(html, "(https?://[^"]+)") do
-        if string.match(newurl, "/"..item_value) or string.match(newurl, "googlevideo%.com") or string.match(newurl, "gstatic%.com") or string.match(newurl, "googleusercontent%.com") then
-          check(newurl)
+      for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
+        if (string.match(newurl, "/"..item_value) and string.match(url, "helpouts%.google%.com")) or (string.match(newurl, "googlevideo%.com") and not string.match(url, "/api/offer/")) or string.match(newurl, "gstatic%.com") or string.match(newurl, "googleusercontent%.com") then
+          check(newurl, url)
         end
+      end
+      if string.match(html, "[0-9]+/[0-9a-zA-Z]+/%?mr=[0-9]+&nr=[0-9]+") then
+        check("https://helpouts.google.com/api/offer/"..item_value.."/"..string.match(html, "[0-9]+/([0-9a-zA-Z]+)/%?mr=[0-9]+&nr=[0-9]+").."?format=JSPB&authuser&xsrf=null&nr="..string.match(html, "[0-9]+/[0-9a-zA-Z]+/%?mr=[0-9]+&nr=([0-9]+)").."&mr="..string.match(html, "[0-9]+/[0-9a-zA-Z]+/%?mr=([0-9]+)&nr=[0-9]+").."&rt=j", url)
       end
     end
   end
