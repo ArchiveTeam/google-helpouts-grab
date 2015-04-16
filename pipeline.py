@@ -203,6 +203,7 @@ class WgetArgs(object):
                 wget_args.append('https://helpouts.google.com/{0}'.format(item_value))
             else:
                 raise Exception('This url is not available in your country: {0}'.format('https://helpouts.google.com/{0}'.format(item_value)))
+            urlhtml.close()
         else:
             raise Exception('Unknown item')
         
@@ -212,7 +213,6 @@ class WgetArgs(object):
             print('*** Wget will bind address at {0} ***'.format(
                 globals()['bind_address']))
             print('')
-            
         return realize(wget_args, item)
 
 ###########################################################################
