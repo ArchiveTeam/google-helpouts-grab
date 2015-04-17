@@ -116,7 +116,11 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
       tries = 0
-      return wget.actions.ABORT
+      if string.match(url["url"], "https?://helpouts%.google%.com") then
+        return wget.actions.ABORT
+      else
+        return wget.actions.EXIT
+      end
     else
       return wget.actions.CONTINUE
     end
@@ -133,7 +137,11 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
       tries = 0
-      return wget.actions.ABORT
+      if string.match(url["url"], "https?://helpouts%.google%.com") then
+        return wget.actions.ABORT
+      else
+        return wget.actions.EXIT
+      end
     else
       return wget.actions.CONTINUE
     end
